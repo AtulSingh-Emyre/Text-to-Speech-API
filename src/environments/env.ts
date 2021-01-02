@@ -12,6 +12,8 @@ export interface Environment {
   accountSID: 'ACb718501f7bde59a9a2162d8cf35a73a7';
   authToken: 'e941c951cc086ef49b5b06b3ec163c8f';
   phoneAuthapi: string;
+  password:string;
+  email:string;
 }
 
 export function getEnvironmentVariables() {

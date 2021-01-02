@@ -1,119 +1,150 @@
-import { Request, Response, NextFunction, query } from 'express';
-import AnalystPostBuySell from '../models/Analyst/AnalystPostBuySell';
+import {Request, Response, NextFunction, query} from 'express';
+import AnalystPostBuySell, {
+  AnalystPostBuySellDocument,
+} from '../models/Analyst/AnalystPostBuySell';
 // import Comment from '../models/mongoDB/Comment';
 // import Posts from '../models/mongoDB/AnalystPostBuySell';
 
 enum Errors {
   STATUS_401 = 'invalid data provided',
-  STATUS_501 = 'server error,please try again'
+  STATUS_501 = 'server error,please try again',
 }
 
 export class AnalystPostController {
   static async savePost(req: Request, res: Response, next: NextFunction) {
     try {
-      console.log(req.body);
-      const newPost = await new AnalystPostBuySell(req.body.post);
-      await newPost.save((err: Error) => {
-        if (err) {
-          return res.status(401).json({
-            message: Errors.STATUS_401
-          });
-        }
-        res.status(200).json({
-          data: { _id: newPost._id }
-        });
+      const postDoc = {
+        ...req.body.post,
+        subscibeClient: await JSON.parse(req.body.post.subscibeClient),
+      };
+      const newPost = await new AnalystPostBuySell(postDoc);
+      await newPost.save();
+      res.status(200).json({
+        data: {_id: newPost._id},
+        success: true,
       });
     } catch (error) {
       next(error);
     }
   }
-  // static async getPost(req: Request, res: Response, next: NextFunction) {
-  //   try {
-  //     await Posts.find(req.body.query).exec(async (err, docs) => {
-  //       if (!docs || err) throw new Error('data failed to load');
-  //       res.json({
-  //         status: 'ok',
-  //         data: docs,
-  //         message: 'post data gained'
-  //       });
-  //     });
-  //   } catch (err) {
-  //     next(err);
-  //   }
-  // }
-  // static async getOnePost(req: Request, res: Response, next: NextFunction) {
-  //   try {
-  //     Posts.find({ _id: req.params.postId }, (err, post) => {
-  //       if (err || !post) throw new Error('Post was not found');
-  //       Comment.find({ postId: req.params.postId })
-  //         .populate('user')
-  //         .exec((err, comments) => {
-  //           if (err) throw new Error('error while retrieving comments');
-  //           res.json({
-  //             status: 'ok',
-  //             data: { post, comments },
-  //             message: 'post data with comments gained'
-  //           });
-  //         });
-  //     });
-  //   } catch (error) {
-  //     next(error);
-  //   }
-  // }
-  // static async addPost(req: Request, res: Response, next: NextFunction) {
-  //   try {
-  //     console.log(req.body);
-  //     const newPost = await new Posts(req.body);
-  //     await newPost.save((err, docs) => {
-  //       if (err) throw new Error(err);
-  //       console.log('save sucessfull');
-  //       res.json({
-  //         status: 'ok',
-  //         data: { _id: newPost._id },
-  //         success: 'Post added successfully'
-  //       });
-  //     });
-  //   } catch (err) {
-  //     next(err);
-  //   }
-  // }
-  // static async updatePost(req: Request, res: Response, next: NextFunction) {
-  //   try {
-  //     await Posts.findOneAndUpdate(
-  //       { _id: req.params.postId },
-  //       { ...req.body.post, updated_at: new Date() },
-  //       (err, docs) => {
-  //         if (!err && docs) {
-  //           res.json({
-  //             status: 'ok',
-  //             data: { _id: req.params.postId },
-  //             success: 'Post update successful'
-  //           });
-  //         } else {
-  //           throw new Error('request failed');
-  //         }
-  //       }
-  //     );
-  //   } catch (err) {
-  //     next(err);
-  //   }
-  // }
-  // static async deletePost(req: Request, res: Response, next: NextFunction) {
-  //   try {
-  //     console.log(req.params.postId);
-  //     await Posts.deleteMany({ _id: req.params.postId }, (err) => {
-  //       if (!err) {
-  //         res.json({
-  //           status: 'ok',
-  //           data: { _id: req.params.postId },
-  //           success: 'Deletion was successful'
-  //         });
-  //       } else {
-  //         throw new Error('request failed');
-  //       }
-  //     });
-  //   } catch (err) {
-  //     next(err);
-  //   }
-  // }
+
+  static async getPostByQuery(req: Request, res: Response, next: NextFunction) {
+    try {
+      console.log(req.body);
+      type body = {
+        user: {
+          isUser?: boolean;
+          id?: string;
+          group: Array<string>;
+        };
+        time: {
+          isAll?: boolean;
+          isIntraday?: boolean;
+          isInterday?: boolean;
+        };
+        options: {
+          skip: number;
+          limit: number;
+        };
+      };
+      var queryTime = {};
+      // Time-period-wise filter :
+      if (req.body.time.isAll) {
+      } else if (!(req.body.isIntraday && req.body.isInterday)) {
+        if (req.body.time.isIntraday) {
+          queryTime = {...queryTime, isIntraday: true};
+        } else if (req.body.time.isInterday) {
+          queryTime = {...queryTime, isIntraday: false};
+        } else {
+        }
+      }
+      var queryUser = {};
+      // User-group wise filter :
+      if (req.body.user.isUser) {
+        queryUser = {...queryUser, analyst: req.body.user.id};
+      } else if (req.body.user.groups) {
+        queryUser = {
+          ...queryUser,
+          'subscibeClient.groupId': {$in: req.body.user.groups},
+        };
+      } else {
+      }
+
+      console.log(queryUser);
+
+      const posts: any = req.body.user.isUser
+        ? await AnalystPostBuySell.find({
+            ...queryTime,
+            ...queryUser,
+          })
+            .skip(req.body.options.skip)
+            .limit(req.body.options.limit)
+            .sort({
+              updated_at: -1,
+            })
+        : await AnalystPostBuySell.find({
+            $or: [
+              {...queryTime, ...queryUser},
+              {...queryTime, isFree: true},
+            ],
+          })
+            .skip(req.body.options.skip)
+            .limit(req.body.options.limit)
+            .sort({
+              updated_at: -1,
+            });
+
+      console.log(posts);
+      return res.json({
+        success: true,
+        data: posts,
+        message: 'post data gained',
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+  static async deletePost(req: Request, res: Response, next: NextFunction) {
+    try {
+      await AnalystPostBuySell.deleteMany({}, (err) => {
+        if (!err) {
+          res.json({
+            status: 'ok',
+
+            success: 'Deletion was successful',
+          });
+        } else {
+          throw new Error('request failed');
+        }
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  static async likePost(req: Request, res: Response, next: NextFunction) {
+    try {
+      const post = await AnalystPostBuySell.findById(req.body.post.id);
+      if (!post) {
+        throw new Error('Post not found');
+      } else {
+      }
+      if (post.like.indexOf(req.body.user.id) != -1) {
+        console.log('post is liked');
+        post.like.splice(post.like.indexOf(req.body.user.id));
+      } else {
+        console.log('post is not liked');
+        post.like.push(req.body.user.id);
+      }
+      await post.save();
+      return res.json({
+        success: true,
+        data: {
+          message: 'Like status changed successfully',
+        },
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }

@@ -1,6 +1,8 @@
-import { Router, Response, Request } from 'express';
-import { UserController } from '../controllers/UserController';
-import { AuthSetup } from '../middlewares/authentication-setup';
+import {Router, Response, Request} from 'express';
+import {UserController} from '../controllers/UserController';
+import {AuthSetup} from '../middlewares/authentication-setup';
+
+// @Route: user-management/
 
 class UserRouter {
   public router: Router;
@@ -13,17 +15,25 @@ class UserRouter {
   }
 
   getRoutes() {
-    this.router.get('/users', UserController.userData);
-  }
-  postRoutes() {}
-  putRoutes() {
-    this.router.put('/users', AuthSetup.isAuthenticated, UserController.update);
-    this.router.put(
-      '/users/phone',
+    this.router.get(
+      '/user/:id',
       AuthSetup.isAuthenticated,
-      UserController.updatePhoneNumber
+      UserController.getUser,
+    );
+    this.router.get(
+      '/analyst/leaderboard',
+      AuthSetup.isAuthenticated,
+      UserController.getLeaderboard,
     );
   }
+  postRoutes() {
+    this.router.post(
+      '/user/update',
+      AuthSetup.isAuthenticated,
+      UserController.updateUser,
+    );
+  }
+  putRoutes() {}
   deleteRoutes() {
     this.router.delete('/users', UserController.deleteUser);
     this.router.delete('/user/all', UserController.purgeData);

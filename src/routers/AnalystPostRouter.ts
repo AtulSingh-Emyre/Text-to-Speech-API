@@ -1,7 +1,6 @@
-import { Router } from 'express';
-import { AnalystPostController } from '../controllers/AnalystPostController';
-import { AuthSetup } from '../middlewares/authentication-setup';
-import { PostValidators } from '../validators/PostValidators';
+import {Router} from 'express';
+import {AnalystPostController} from '../controllers/AnalystPostController';
+import {AuthSetup} from '../middlewares/authentication-setup';
 
 //@PATH /analyst
 //@AUTH required
@@ -13,42 +12,30 @@ class AnalystPostRouter {
     this.router = Router();
     this.getRoutes();
     this.postRoutes();
-    this.updateRoutes();
     this.deleteRoutes();
   }
   getRoutes() {
-    this.router.get(
-      '/post/get',
+    this.router.post(
+      '/post/like',
       AuthSetup.isAuthenticated,
-      AnalystPostController.getPost
-    );
-    this.router.get(
-      '/post/:postId',
-      AuthSetup.isAuthenticated,
-      AnalystPostController.getOnePost
+      AnalystPostController.likePost,
     );
   }
+
   postRoutes() {
     this.router.post(
       '/post/post',
       AuthSetup.isAuthenticated,
-      AnalystPostController.addPost
+      AnalystPostController.savePost,
     );
-  }
-  updateRoutes() {
-    this.router.put(
-      '/post/edit/:postId',
+    this.router.post(
+      '/post/query',
       AuthSetup.isAuthenticated,
-      AnalystPostController.updatePost
+      AnalystPostController.getPostByQuery,
     );
   }
   deleteRoutes() {
-    this.router.delete(
-      '/post/delete/:postId',
-      AuthSetup.isAuthenticated,
-      PostValidators.deletePost(),
-      AnalystPostController.deletePost
-    );
+    this.router.delete('/post/delete', AnalystPostController.deletePost);
   }
 }
 

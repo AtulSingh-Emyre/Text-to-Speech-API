@@ -1,33 +1,31 @@
-import { Document, Model, model, Schema } from 'mongoose';
+import {Document, Model, model, Schema} from 'mongoose';
 
+interface clientGroup {
+  groupId: string;
+}
 interface IAnalystPostBuySell {
   analyst: string;
   stockName: string;
-  comparator: number;
+  comparator: string;
   price: number;
   buy: boolean;
-  T: [{ T1: number }, { T2: number }, { T3: number }];
+  T1: number;
+  T2: number;
+  T3: number;
   SL: number;
   possibility: number;
   description: string;
-  type: Array<string>;
-  paid: boolean;
+  isIntraday: boolean;
+  isActive: boolean;
+  validTill: Date;
+  isFree: boolean;
+  subscriptionPrice: number;
+  subscibeClient: Array<clientGroup>;
   created_at: string;
   updated_at: string;
-  likes: [
-    {
-      user: string;
-    }
-  ];
-  comments: [
-    {
-      user: string;
-      text: string;
-      name: string;
-      avatar: string;
-      date: string;
-    }
-  ];
+  like: string[];
+  isDeleted: boolean;
+  created_by: string;
 }
 
 export type AnalystPostBuySellDocument = IAnalystPostBuySell & Document;
@@ -36,58 +34,42 @@ const AnalystPostBuySellSchema: Schema = new Schema({
   analyst: {
     type: Schema.Types.ObjectId,
     ref: 'AnalystUserProfile',
-    required: true
+    required: true,
   },
-  stockName: { type: String, required: true },
-  comparator: { type: Number, required: false },
-  price: { type: Number, required: false },
-  buy: { type: Boolean, required: true },
-  T: {
-    type: [{ T1: Number }, { T2: Number }, { T3: Number }],
-    required: false
+  stockName: {type: String, required: true},
+  price: {type: Number, required: false},
+  buy: {type: Boolean, required: true},
+  comparator: {type: String, required: false},
+  T1: {
+    type: Number,
+    required: false,
   },
-  SL: { type: Number, required: false },
-  possibility: { type: Number, required: false },
-  description: { type: String, required: false },
-  type: { type: Array, required: false },
-  paid: { type: Boolean, required: false },
-  created_at: { type: Date, required: false, default: new Date() },
-  updated_at: { type: Date, required: true, default: new Date() },
-  likes: [
-    {
-      user: {
-        type: Schema.Types.ObjectId,
-        ref: 'User'
-      }
-    }
-  ],
-  comments: [
-    {
-      user: {
-        type: Schema.Types.ObjectId,
-        ref: 'User'
-      },
-      text: {
-        type: String,
-        required: true
-      },
-      name: {
-        type: String
-      },
-      avatar: {
-        type: String
-      },
-      date: {
-        type: Date,
-        default: Date.now
-      }
-    }
-  ]
+  T2: {
+    type: Number,
+    required: false,
+  },
+  T3: {
+    type: Number,
+    required: false,
+  },
+  SL: {type: Number, required: false},
+  possibility: {type: Number, required: false, default: 50},
+  description: {type: String, required: false},
+  isIntraday: {type: Boolean, required: false},
+  validTill: {type: Date, required: false},
+  isFree: {type: Boolean, required: false},
+  subscibeClient: {type: Array, required: false},
+  subscriptionPrice: {type: Number},
+  isActive: {type: Boolean, default: true},
+  created_at: {type: Date, required: false, default: new Date()},
+  updated_at: {type: Date, required: true, default: new Date()},
+  created_by: {type: String, required: true},
+  like: {type: Array, default: []},
 });
 
 const AnalystPostBuySell: Model<AnalystPostBuySellDocument> = model(
   'AnalystPostBuySell',
-  AnalystPostBuySellSchema
+  AnalystPostBuySellSchema,
 );
 
 export default AnalystPostBuySell;

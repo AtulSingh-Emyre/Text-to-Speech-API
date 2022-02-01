@@ -1,7 +1,5 @@
 import { Router } from 'express';
-import { AuthController } from '../controllers/AuthController';
-import { AuthSetup } from '../middlewares/authentication-setup';
-import { AuthValidators } from '../validators/AuthValidators';
+import { APICallController } from '../controllers/APICallController';
 
 // The file is responsible to process the api requests and call the required middleware, validator and controller in a centralized place
 
@@ -24,10 +22,8 @@ class AuthRouter {
   postRoutes(): void {
     // add all post routes here
     this.router.post(
-      '/login', // path of api request
-      AuthSetup.isAuthenticated, // checks if the request contains a valid token (checks if user is logged in. Remove this middleware if user is supposed to not be logged in).
-      AuthValidators.login, // validates the body content.
-      AuthController.login // Main business logic of the server that returns the required response.
+      '/conv', // path of api request
+      APICallController.convertToSpeech // Main business logic of the server that returns the required response.
     );
   }
   putRoutes(): void {

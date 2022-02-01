@@ -3,10 +3,8 @@
 import * as express from 'express';
 import { Response } from 'express';
 import * as bodyParser from 'body-parser';
-import * as mongoose from 'mongoose';
 //server file imports
-import AuthRouter from './routers/AuthRouter';
-import { getEnvironmentVariables } from './environments/env';
+import APICallRouter from './routers/APICallRouter';
 
 export class Server {
   public app: express.Application = express();
@@ -20,7 +18,6 @@ export class Server {
 
   setConfigurations() {
     // boilerplate configuration of the packages
-    this.connectMongoDb();
     this.configureBodyParser();
     console.log('Configurations have been successfully setup');
   }
@@ -33,19 +30,7 @@ export class Server {
 
   setRoutes() {
     // all the server api routes go here
-    this.app.use('/auth', AuthRouter);
-  }
-
-  connectMongoDb() {
-    // establishing connection with mongodb
-    const databaseUrl = getEnvironmentVariables().db_url;
-    mongoose.connect(databaseUrl, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true
-    });
-    mongoose.connection.on('open', () => {
-      console.log('connection successfully made with database');
-    });
+    this.app.use('/api', APICallRouter);
   }
 
   error404Handler() {

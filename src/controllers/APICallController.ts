@@ -4,8 +4,7 @@ import { Request, Response, NextFunction } from 'express';
 import textToSpeech from '@google-cloud/text-to-speech';
 import { writeFile } from 'fs';
 import { promisify } from 'util';
-import { config } from 'dotenv';
-config();
+
 // Creates a client
 const client = new textToSpeech.TextToSpeechClient();
 export class APICallController {
